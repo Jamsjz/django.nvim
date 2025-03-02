@@ -101,19 +101,19 @@ M.setup_autocmds = function()
       local opts = { noremap = true, silent = true, buffer = true }
 
       -- Main commands
-      vim.keymap.set("n", prefix .. "j", ":Django<CR>", opts)
-      vim.keymap.set("n", prefix .. "r", ":DjangoRoutes<CR>", opts)
-      vim.keymap.set("n", prefix .. "m", ":DjangoModels<CR>", opts)
-      vim.keymap.set("n", prefix .. "t", ":DjangoTemplates<CR>", opts)
-      vim.keymap.set("n", prefix .. "a", ":DjangoApps<CR>", opts)
-      vim.keymap.set("n", prefix .. "v", ":DjangoVenv<CR>", opts)
+      vim.keymap.set("n", prefix .. "j", "<cmd>Django<CR>", opts)
+      vim.keymap.set("n", prefix .. "r", "<cmd>DjangoRoutes<CR>", opts)
+      vim.keymap.set("n", prefix .. "m", "<cmd>DjangoModels<CR>", opts)
+      vim.keymap.set("n", prefix .. "t", "<cmd>DjangoTemplates<CR>", opts)
+      vim.keymap.set("n", prefix .. "a", "<cmd>DjangoApps<CR>", opts)
+      vim.keymap.set("n", prefix .. "v", "<cmd>DjangoVenv<CR>", opts)
 
       -- Shortcuts for common commands
-      vim.keymap.set("n", prefix .. "rs", ":Django runserver<CR>", opts)
-      vim.keymap.set("n", prefix .. "sh", ":Django shell<CR>", opts)
-      vim.keymap.set("n", prefix .. "mi", ":Django migrate<CR>", opts)
-      vim.keymap.set("n", prefix .. "mm", ":Django makemigrations<CR>", opts)
-      vim.keymap.set("n", prefix .. "te", ":Django test<CR>", opts)
+      vim.keymap.set("n", prefix .. "rs", "<cmd>Django runserver<CR>", opts)
+      vim.keymap.set("n", prefix .. "sh", "<cmd>Django shell<CR>", opts)
+      vim.keymap.set("n", prefix .. "mi", "<cmd>Django migrate<CR>", opts)
+      vim.keymap.set("n", prefix .. "mm", "<cmd>Django makemigrations<CR>", opts)
+      vim.keymap.set("n", prefix .. "te", "<cmd>Django test<CR>", opts)
     end,
   })
 end
