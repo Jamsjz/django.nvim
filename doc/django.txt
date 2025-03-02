@@ -1,0 +1,163 @@
+*django.nvim*  A Django development plugin for Neovim
+
+================================================================================
+CONTENTS                                                        *django-contents*
+
+1. Introduction ........................... |django-introduction|
+2. Requirements ........................... |django-requirements|
+3. Installation ........................... |django-installation|
+4. Usage .................................. |django-usage|
+5. Commands ............................... |django-commands|
+6. Mappings ............................... |django-mappings|
+7. Configuration .......................... |django-configuration|
+8. License ................................ |django-license|
+
+================================================================================
+1. INTRODUCTION                                           *django-introduction*
+
+django.nvim is a Neovim plugin that provides Django-specific functionality to
+enhance your development workflow. It includes features like command execution,
+project navigation, and virtual environment integration.
+
+================================================================================
+2. REQUIREMENTS                                           *django-requirements*
+
+* Neovim 0.7.0+
+* Telescope.nvim and its dependencies (https://github.com/nvim-telescope/telescope.nvim)
+* ripgrep (https://github.com/BurntSushi/ripgrep) for code searching
+* Optional: toggleterm.nvim for better terminal integration
+* Optional: venv-selector.nvim for virtual environment handling
+
+================================================================================
+3. INSTALLATION                                           *django-installation*
+
+Using packer.nvim: >
+  use {
+    'username/django.nvim',
+    requires = {
+      'nvim-telescope/telescope.nvim',
+      'nvim-lua/plenary.nvim',
+      -- Optional but recommended:
+      'akinsho/toggleterm.nvim',
+      'linux-cultist/venv-selector.nvim',
+    }
+  }
+<
+
+Using lazy.nvim: >
+  {
+    'username/django.nvim',
+    dependencies = {
+      'nvim-telescope/telescope.nvim',
+      'nvim-lua/plenary.nvim',
+      -- Optional but recommended:
+      'akinsho/toggleterm.nvim',
+      'linux-cultist/venv-selector.nvim',
+    },
+    config = function()
+      require('django').setup({
+        -- Your configuration here
+      })
+    end
+  }
+<
+
+================================================================================
+4. USAGE                                                        *django-usage*
+
+After installation, initialize the plugin with: >
+  
+  require('django').setup({
+    -- Your configuration options here
+  })
+<
+
+The plugin will automatically detect Django projects by looking for a manage.py
+file in the current directory. It will also try to detect your virtual
+environment.
+
+================================================================================
+5. COMMANDS                                                  *django-commands*
+
+:Django [command]                   Run a Django management command
+                                   If no command is specified, shows a list
+                                   of available commands
+
+:DjangoRoutes                       Find and navigate URL patterns (routes)
+
+:DjangoModels                       Find and navigate Django models
+
+:DjangoTemplates                    Find and navigate Django templates
+
+:DjangoApps                         List and navigate to Django apps
+
+:DjangoVenv                         Activate the virtual environment
+
+================================================================================
+6. MAPPINGS                                                  *django-mappings*
+
+By default, the following mappings are enabled in Python, HTML, and Django
+template files in Django projects:
+
+<Leader>dj                          List Django management commands
+<Leader>dr                          Find URL patterns
+<Leader>dm                          Find models
+<Leader>dt                          Find templates
+<Leader>da                          List apps
+<Leader>dv                          Activate virtual environment
+
+Quick command shortcuts:
+<Leader>drs                         Run server
+<Leader>dsh                         Open Django shell
+<Leader>dmi                         Run migrations
+<Leader>dmm                         Make migrations
+<Leader>dte                         Run tests
+
+Terminal:
+<Leader>dtt                         Toggle terminal (if enabled)
+
+Note: The default leader prefix is "<Leader>d" but can be customized.
+
+================================================================================
+7. CONFIGURATION                                        *django-configuration*
+
+Available options with their defaults: >
+
+  require('django').setup({
+    -- Path to manage.py
+    manage_py_path = "manage.py",
+    
+    -- Path to Django templates
+    templates_path = "templates/",
+    
+    -- Default app to use for commands
+    default_app = nil,
+    
+    -- Terminal settings
+    terminal = {
+      position = "horizontal", -- horizontal, vertical, float
+      size = 15,
+    },
+    
+    -- Enable terminal toggle
+    enable_terminal_toggle = true,
+    
+    -- Auto-detect virtual environment
+    auto_virtual_env = true,
+    
+    -- Custom virtual environment path
+    virtual_env_path = nil,
+    
+    -- Keymappings
+    mappings = {
+      enabled = true,
+      prefix = "<Leader>d",
+    },
+  })
+<
+
+================================================================================
+8. LICENSE                                                    *django-license*
+
+The django.nvim plugin is released under the MIT License.
+
