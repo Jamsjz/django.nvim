@@ -6,7 +6,6 @@ local M = {}
 -- Import submodules
 local commands = require("django.commands")
 local navigation = require("django.navigation")
-local terminal = require("django.terminal")
 local utils = require("django.utils")
 
 -- Setup function
@@ -22,15 +21,6 @@ M.setup = function(opts)
     -- Default app to use for commands
     default_app = nil,
 
-    -- Terminal settings
-    terminal = {
-      position = "horizontal", -- horizontal, vertical, float
-      size = 15,
-    },
-
-    -- Enable terminal toggle
-    enable_terminal_toggle = true,
-
     -- Auto-detect virtual environment
     auto_virtual_env = true,
 
@@ -40,7 +30,7 @@ M.setup = function(opts)
     -- Keymappings
     mappings = {
       enabled = true,
-      prefix = "<Leader>d",
+      prefix = "<leader>d",
     },
   }
 
@@ -60,7 +50,6 @@ M.setup = function(opts)
   -- Initialize submodules
   commands.setup(M.options)
   navigation.setup(M.options)
-  terminal.setup(M.options)
 
   -- Register commands
   M.register_commands()
@@ -90,10 +79,6 @@ M.register_commands = function()
   vim.api.nvim_create_user_command("DjangoApps", function()
     navigation.list_apps()
   end, { desc = "List Django apps" })
-
-  vim.api.nvim_create_user_command("DjangoVenv", function()
-    terminal.activate_venv()
-  end, { desc = "Activate Django virtual environment" })
 end
 
 -- Setup autocommands for Django files
@@ -129,11 +114,6 @@ M.setup_autocmds = function()
       vim.keymap.set("n", prefix .. "mi", ":Django migrate<CR>", opts)
       vim.keymap.set("n", prefix .. "mm", ":Django makemigrations<CR>", opts)
       vim.keymap.set("n", prefix .. "te", ":Django test<CR>", opts)
-
-      -- Terminal toggle
-      if M.options.enable_terminal_toggle then
-        vim.keymap.set("n", prefix .. "tt", function() terminal.toggle_term() end, opts)
-      end
     end,
   })
 end
@@ -145,8 +125,6 @@ M.find_routes = navigation.find_routes
 M.find_models = navigation.find_models
 M.find_templates = navigation.find_templates
 M.list_apps = navigation.list_apps
-M.toggle_term = terminal.toggle_term
-M.activate_venv = terminal.activate_venv
 M.is_django_project = utils.is_django_project
 
 return M

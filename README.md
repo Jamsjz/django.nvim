@@ -12,7 +12,6 @@ A Neovim plugin for Django development that provides project navigation, command
   - Browse models with intelligent filtering
   - Search templates across your project
   - List and navigate between apps
-- **Terminal Integration**: Integrated terminal support for command output
 - **Environment Support**: Virtual environment detection and activation
 - **Intuitive Keymaps**: Consistent keyboard shortcuts for common Django operations
 
@@ -22,7 +21,6 @@ A Neovim plugin for Django development that provides project navigation, command
 - [Telescope.nvim](https://github.com/nvim-telescope/telescope.nvim) and its dependencies
 - [ripgrep](https://github.com/BurntSushi/ripgrep) for code searching
 - Optional but recommended:
-  - [toggleterm.nvim](https://github.com/akinsho/toggleterm.nvim) for better terminal integration
   - [venv-selector.nvim](https://github.com/linux-cultist/venv-selector.nvim) for virtual environment handling
 
 ## Installation
@@ -36,7 +34,6 @@ use {
     'nvim-telescope/telescope.nvim',
     'nvim-lua/plenary.nvim', -- telescope dependency
     -- Optional but recommended:
-    'akinsho/toggleterm.nvim',
     'linux-cultist/venv-selector.nvim',
   }
 }
@@ -51,7 +48,6 @@ use {
     'nvim-telescope/telescope.nvim',
     'nvim-lua/plenary.nvim',
     -- Optional but recommended:
-    'akinsho/toggleterm.nvim',
     'linux-cultist/venv-selector.nvim',
   },
   config = function()
@@ -74,15 +70,6 @@ require('django').setup({
   
   -- Default app to use for commands
   default_app = nil, -- e.g., "myapp"
-  
-  -- Terminal settings
-  terminal = {
-    position = "horizontal", -- horizontal, vertical, float
-    size = 15,
-  },
-  
-  -- Enable terminal toggle
-  enable_terminal_toggle = true,
   
   -- Auto-detect virtual environment
   auto_virtual_env = true,

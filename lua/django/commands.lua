@@ -24,15 +24,7 @@ M.run_command = function(command)
   end
 
   local full_command = "python " .. options.manage_py_path .. " " .. command
-
-  -- Check if toggleterm is available
-  local has_toggleterm, toggleterm = pcall(require, "toggleterm")
-
-  if has_toggleterm then
-    toggleterm.exec(full_command)
-  else
-    vim.cmd("!" .. full_command)
-  end
+  vim.cmd("!" .. full_command)
 end
 
 -- Get list of Django management commands

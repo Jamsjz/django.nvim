@@ -25,7 +25,6 @@ project navigation, and virtual environment integration.
 * Neovim 0.7.0+
 * Telescope.nvim and its dependencies (https://github.com/nvim-telescope/telescope.nvim)
 * ripgrep (https://github.com/BurntSushi/ripgrep) for code searching
-* Optional: toggleterm.nvim for better terminal integration
 * Optional: venv-selector.nvim for virtual environment handling
 
 ================================================================================
@@ -38,7 +37,6 @@ Using packer.nvim: >
       'nvim-telescope/telescope.nvim',
       'nvim-lua/plenary.nvim',
       -- Optional but recommended:
-      'akinsho/toggleterm.nvim',
       'linux-cultist/venv-selector.nvim',
     }
   }
@@ -51,7 +49,6 @@ Using lazy.nvim: >
       'nvim-telescope/telescope.nvim',
       'nvim-lua/plenary.nvim',
       -- Optional but recommended:
-      'akinsho/toggleterm.nvim',
       'linux-cultist/venv-selector.nvim',
     },
     config = function()
@@ -113,10 +110,7 @@ Quick command shortcuts:
 <Leader>dmm                         Make migrations
 <Leader>dte                         Run tests
 
-Terminal:
-<Leader>dtt                         Toggle terminal (if enabled)
-
-Note: The default leader prefix is "<Leader>d" but can be customized.
+Note: The default leader prefix is "<leader>d" but can be customized.
 
 ================================================================================
 7. CONFIGURATION                                        *django-configuration*
@@ -133,14 +127,6 @@ Available options with their defaults: >
     -- Default app to use for commands
     default_app = nil,
     
-    -- Terminal settings
-    terminal = {
-      position = "horizontal", -- horizontal, vertical, float
-      size = 15,
-    },
-    
-    -- Enable terminal toggle
-    enable_terminal_toggle = true,
     
     -- Auto-detect virtual environment
     auto_virtual_env = true,
