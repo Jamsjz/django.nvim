@@ -1,86 +1,127 @@
--- django.nvim - Utilities module
--- Helper functions for the plugin
+-- lua/django/utils.lua
+-- Utility functions for the Django plugin
 
 local M = {}
 
--- Check if current directory is a Django project
-M.is_django_project = function(manage_py_path)
-  return vim.fn.filereadable(manage_py_path) == 1
-end
+-- Find the root directory of a Django project
+-- Searches for manage.py in current or parent directories
+function M.find_django_root()
+  local current_dir = vim.fn.getcwd()
+  local max_depth = 5 -- Don't go up more than 5 levels
 
--- Detect virtual environment
-M.detect_venv = function()
-  -- Common virtual environment directories
-  local venv_paths = {
-    ".venv",
-    "venv",
-    "env",
-    ".env",
-    "virtualenv",
-  }
+  for i = 0, max_depth do
+    local check_path = current_dir
+    if i > 0 then
+      check_path = vim.fn.fnamemodify(current_dir, ":h" .. string.rep(":h", i - 1))
+    end
 
-  for _, path in ipairs(venv_paths) do
-    if vim.fn.isdirectory(path) == 1 then
-      return path
+    local manage_py = check_path .. "/manage.py"
+    if vim.fn.filereadable(manage_py) == 1 then
+      return check_path
     end
   end
 
   return nil
 end
 
--- Find Django project root
-M.find_project_root = function()
-  -- Start from the current directory and look for manage.py
-  local current_dir = vim.fn.getcwd()
-  local max_depth = 5 -- Limit the search depth
+-- Find all Django apps in the project
+function M.find_django_apps(project_root)
+  -- If no project root provided, try to find it
+  if not project_root then
+    project_root = M.find_django_root()
+  end
 
-  local dir = current_dir
-  for i = 1, max_depth do
-    if vim.fn.filereadable(dir .. "/manage.py") == 1 then
-      return dir
-    end
+  if not project_root then
+    vim.notify("Could not find Django project root", vim.log.levels.ERROR)
+    return {}
+  end
 
-    -- Move up one directory
-    dir = vim.fn.fnamemodify(dir, ":h")
+  local apps = {}
 
-    -- Stop if we've reached the root
-    if dir == "/" or dir:match("^%a:[/\\]$") then
-      break
+  -- Helper function to check if a directory is a Django app
+  local function is_django_app(dir)
+    -- Check if directory contains apps.py or models.py
+    return vim.fn.filereadable(dir .. "/apps.py") == 1 or
+        vim.fn.filereadable(dir .. "/models.py") == 1
+  end
+
+  -- Helper function to scan a directory for potential Django apps
+  local function scan_dir(dir)
+    -- Get all directories in the specified directory
+    local handle = vim.loop.fs_scandir(dir)
+    if not handle then return end
+
+    while true do
+      local name, type = vim.loop.fs_scandir_next(handle)
+      if not name then break end
+
+      local full_path = dir .. "/" .. name
+      if type == "directory" and not name:match("^%.") then
+        -- Skip hidden directories
+        if is_django_app(full_path) then
+          table.insert(apps, {
+            name = name,
+            path = full_path,
+            full_path = full_path,
+            is_app = true
+          })
+        end
+
+        -- Also scan subdirectories (for nested apps)
+        scan_dir(full_path)
+      end
     end
   end
 
-  return current_dir -- Default to current directory if not found
+  -- Start scanning from project root
+  scan_dir(project_root)
+
+  return apps
 end
 
--- Get current Django app name from the file path
-M.get_current_app = function(filepath)
-  if not filepath then
-    filepath = vim.fn.expand("%:p")
-  end
-
-  -- Extract app name from file path, assuming standard Django project structure
-  local app_pattern = ".+/([^/]+)/[^/]+%.py$"
-  return filepath:match(app_pattern)
+-- Run a shell command and capture its output
+function M.run_command(cmd)
+  local result = vim.fn.system(cmd)
+  return result
 end
 
--- Parse Django settings module from manage.py
-M.get_django_settings_module = function(manage_py_path)
-  if not M.is_django_project(manage_py_path) then
-    return nil
+-- Get all available Django commands
+function M.get_django_commands(manage_py_path)
+  if not manage_py_path or vim.fn.filereadable(manage_py_path) ~= 1 then
+    vim.notify("manage.py not found", vim.log.levels.ERROR)
+    return {}
   end
 
-  local handle = io.open(manage_py_path, "r")
-  if not handle then
-    return nil
+  local cmd = manage_py_path .. " help --commands"
+  local output = M.run_command(cmd)
+
+  -- Parse the output to get a list of commands
+  local commands = {}
+  for line in output:gmatch("[^\r\n]+") do
+    if line and line ~= "" then
+      table.insert(commands, {
+        name = line,
+        full_command = manage_py_path .. " " .. line
+      })
+    end
   end
 
-  local content = handle:read("*all")
-  handle:close()
+  return commands
+end
 
-  -- Look for the DJANGO_SETTINGS_MODULE environment variable
-  local settings_module = content:match("os%.environ%.setdefault%(\"DJANGO_SETTINGS_MODULE\"%s*,%s*[\"']([^\"']+)[\"']")
+-- Check if a required plugin is available
+function M.has_plugin(plugin)
+  local has_plugin = vim.fn.exists("g:loaded_" .. plugin) == 1 or
+      vim.fn.exists("g:loaded_" .. plugin .. ".nvim") == 1
 
-  return settings_module
+  -- Special check for telescope
+  if plugin == "telescope" then
+    has_plugin = has_plugin or pcall(require, "telescope")
+  elseif plugin == "floaterm" then
+    has_plugin = has_plugin or vim.fn.exists("g:loaded_floaterm") == 1
+  end
+
+  return has_plugin
 end
 
 return M

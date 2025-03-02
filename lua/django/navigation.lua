@@ -1,230 +1,303 @@
--- django.nvim - Navigation module
--- Handles navigation for URLs, models, templates, etc.
-
-local pickers = require("telescope.pickers")
-local finders = require("telescope.finders")
-local conf = require("telescope.config").values
-local actions = require("telescope.actions")
-local action_state = require("telescope.actions.state")
-local previewers = require("telescope.previewers")
+-- lua/django/navigation.lua
+-- Navigation functions for Django apps and files
 
 local M = {}
-local options = {}
+local config = {}
 
--- Setup function
-M.setup = function(opts)
-  options = opts
+-- Initialize navigation module
+function M.setup(opts)
+  config = opts
 end
 
--- Find Django URL patterns
-M.find_routes = function()
-  -- Use ripgrep to find urlpatterns
-  local command = "rg --vimgrep 'urlpatterns\\s*=|path\\([^)]*\\)' -g '*.py'"
+-- Find and navigate to a Django app
+function M.find_app()
+  local utils = require("django.utils")
 
-  local handle = io.popen(command)
-  if not handle then
-    vim.notify("Error: Could not run ripgrep. Is it installed?", vim.log.levels.ERROR)
+  -- Check if telescope is available
+  if config.telescope_enabled and not utils.has_plugin("telescope") then
+    vim.notify("Telescope is required for app navigation but not available", vim.log.levels.ERROR)
     return
   end
 
-  local results = {}
-  for line in handle:lines() do
-    table.insert(results, line)
-  end
-  handle:close()
+  -- Find Django apps
+  local apps = utils.find_django_apps(config.project_root)
 
-  if #results == 0 then
-    vim.notify("No URL patterns found.", vim.log.levels.INFO)
+  if #apps == 0 then
+    vim.notify("No Django apps found in the project", vim.log.levels.WARN)
     return
   end
 
-  pickers.new({}, {
-    prompt_title = "Django URL Patterns",
-    finder = finders.new_table({
-      results = results,
-      entry_maker = function(entry)
-        local file, line, _, text = entry:match("([^:]+):(%d+):(%d+):(.*)")
-        return {
-          value = entry,
-          display = file .. ":" .. line .. " - " .. text:gsub("^%s*", ""),
-          ordinal = file .. " " .. text,
-          filename = file,
-          lnum = tonumber(line),
-          text = text,
-        }
+  -- If telescope is available, use it for finding apps
+  if config.telescope_enabled then
+    local telescope = require("telescope.builtin")
+    local actions = require("telescope.actions")
+    local action_state = require("telescope.actions.state")
+    local pickers = require("telescope.pickers")
+    local finders = require("telescope.finders")
+    local conf = require("telescope.config").values
+
+    local app_entries = {}
+    for _, app in ipairs(apps) do
+      table.insert(app_entries, {
+        value = app,
+        display = app.name,
+        ordinal = app.name,
+      })
+    end
+
+    pickers.new({}, {
+      prompt_title = "Django Apps",
+      finder = finders.new_table({
+        results = app_entries,
+        entry_maker = function(entry)
+          return {
+            value = entry.value,
+            display = entry.display,
+            ordinal = entry.ordinal,
+          }
+        end,
+      }),
+      sorter = conf.generic_sorter({}),
+      attach_mappings = function(prompt_bufnr, map)
+        -- Navigate to views.py when the app is selected
+        actions.select_default:replace(function()
+          local selection = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+
+          if selection and selection.value then
+            local app = selection.value
+            local views_path = app.path .. "/views.py"
+
+            -- Check if views.py exists, otherwise try to navigate to the app directory
+            if vim.fn.filereadable(views_path) == 1 then
+              vim.cmd("edit " .. views_path)
+            else
+              vim.cmd("edit " .. app.path)
+            end
+          end
+        end)
+
+        -- Custom mappings for different app files
+        map("i", "<C-m>", function()
+          local selection = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+
+          if selection and selection.value then
+            local app = selection.value
+            local models_path = app.path .. "/models.py"
+
+            if vim.fn.filereadable(models_path) == 1 then
+              vim.cmd("edit " .. models_path)
+            else
+              vim.notify("models.py not found for " .. app.name, vim.log.levels.WARN)
+            end
+          end
+        end)
+
+        map("i", "<C-u>", function()
+          local selection = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+
+          if selection and selection.value then
+            local app = selection.value
+            local urls_path = app.path .. "/urls.py"
+
+            if vim.fn.filereadable(urls_path) == 1 then
+              vim.cmd("edit " .. urls_path)
+            else
+              vim.notify("urls.py not found for " .. app.name, vim.log.levels.WARN)
+            end
+          end
+        end)
+
+        map("i", "<C-a>", function()
+          local selection = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+
+          if selection and selection.value then
+            local app = selection.value
+            local admin_path = app.path .. "/admin.py"
+
+            if vim.fn.filereadable(admin_path) == 1 then
+              vim.cmd("edit " .. admin_path)
+            else
+              vim.notify("admin.py not found for " .. app.name, vim.log.levels.WARN)
+            end
+          end
+        end)
+
+        map("i", "<C-t>", function()
+          local selection = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+
+          if selection and selection.value then
+            local app = selection.value
+            local tests_path = app.path .. "/tests.py"
+
+            if vim.fn.filereadable(tests_path) == 1 then
+              vim.cmd("edit " .. tests_path)
+            else
+              vim.notify("tests.py not found for " .. app.name, vim.log.levels.WARN)
+            end
+          end
+        end)
+
+        map("i", "<C-f>", function()
+          local selection = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+
+          if selection and selection.value then
+            local app = selection.value
+            local forms_path = app.path .. "/forms.py"
+
+            if vim.fn.filereadable(forms_path) == 1 then
+              vim.cmd("edit " .. forms_path)
+            else
+              vim.notify("forms.py not found for " .. app.name, vim.log.levels.WARN)
+            end
+          end
+        end)
+
+        return true
       end,
-    }),
-    sorter = conf.generic_sorter({}),
-    previewer = conf.grep_previewer({}),
-    attach_mappings = function(prompt_bufnr, map)
-      actions.select_default:replace(function()
-        actions.close(prompt_bufnr)
-        local selection = action_state.get_selected_entry()
-        vim.cmd("edit " .. selection.filename)
-        vim.api.nvim_win_set_cursor(0, { selection.lnum, 0 })
-        vim.cmd("normal! zz")
-      end)
-      return true
-    end,
-  }):find()
+    }):find()
+  else
+    -- Fallback if telescope is not available: simple menu
+    local items = {}
+    for i, app in ipairs(apps) do
+      table.insert(items, i .. ". " .. app.name)
+    end
+
+    vim.ui.select(items, {
+      prompt = "Select Django app:",
+    }, function(choice)
+      if not choice then return end
+
+      -- Extract index from choice
+      local index = tonumber(choice:match("^(%d+)%."))
+      if not index then return end
+
+      local app = apps[index]
+      local views_path = app.path .. "/views.py"
+
+      if vim.fn.filereadable(views_path) == 1 then
+        vim.cmd("edit " .. views_path)
+      else
+        vim.cmd("edit " .. app.path)
+      end
+    end)
+  end
 end
 
--- Find Django models
-M.find_models = function()
-  local command = "rg --vimgrep 'class\\s+[A-Za-z0-9_]+\\(\\s*(models\\.Model|Model)' -g '*.py'"
+-- Navigate to a specific Django file
+function M.goto_django_file(file_type)
+  local utils = require("django.utils")
+  local apps = utils.find_django_apps(config.project_root)
 
-  local handle = io.popen(command)
-  if not handle then
-    vim.notify("Error: Could not run ripgrep. Is it installed?", vim.log.levels.ERROR)
+  if #apps == 0 then
+    vim.notify("No Django apps found in the project", vim.log.levels.WARN)
     return
   end
 
-  local results = {}
-  for line in handle:lines() do
-    table.insert(results, line)
-  end
-  handle:close()
+  local file_extensions = {
+    views = "/views.py",
+    models = "/models.py",
+    urls = "/urls.py",
+    admin = "/admin.py",
+    tests = "/tests.py",
+    forms = "/forms.py",
+  }
 
-  if #results == 0 then
-    vim.notify("No models found.", vim.log.levels.INFO)
+  local file_ext = file_extensions[file_type]
+  if not file_ext then
+    vim.notify("Unknown file type: " .. file_type, vim.log.levels.ERROR)
     return
   end
 
-  pickers.new({}, {
-    prompt_title = "Django Models",
-    finder = finders.new_table({
-      results = results,
-      entry_maker = function(entry)
-        local file, line, _, text = entry:match("([^:]+):(%d+):(%d+):(.*)")
-        local model_name = text:match("class%s+([A-Za-z0-9_]+)")
-        return {
-          value = entry,
-          display = model_name .. " - " .. file,
-          ordinal = model_name .. " " .. file,
-          filename = file,
-          lnum = tonumber(line),
-          text = text,
-        }
+  -- Use the same navigation logic as find_app but with specific file type
+  if config.telescope_enabled and utils.has_plugin("telescope") then
+    local telescope = require("telescope.builtin")
+    local actions = require("telescope.actions")
+    local action_state = require("telescope.actions.state")
+    local pickers = require("telescope.pickers")
+    local finders = require("telescope.finders")
+    local conf = require("telescope.config").values
+
+    local app_entries = {}
+    for _, app in ipairs(apps) do
+      local file_path = app.path .. file_ext
+      if vim.fn.filereadable(file_path) == 1 then
+        table.insert(app_entries, {
+          value = app,
+          file_path = file_path,
+          display = app.name,
+          ordinal = app.name,
+        })
+      end
+    end
+
+    if #app_entries == 0 then
+      vim.notify("No " .. file_type .. " files found in any app", vim.log.levels.WARN)
+      return
+    end
+
+    pickers.new({}, {
+      prompt_title = "Django Apps - " .. file_type,
+      finder = finders.new_table({
+        results = app_entries,
+        entry_maker = function(entry)
+          return {
+            value = entry.value,
+            file_path = entry.file_path,
+            display = entry.display,
+            ordinal = entry.ordinal,
+          }
+        end,
+      }),
+      sorter = conf.generic_sorter({}),
+      attach_mappings = function(prompt_bufnr, map)
+        actions.select_default:replace(function()
+          local selection = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+
+          if selection and selection.file_path then
+            vim.cmd("edit " .. selection.file_path)
+          end
+        end)
+
+        return true
       end,
-    }),
-    sorter = conf.generic_sorter({}),
-    previewer = conf.grep_previewer({}),
-    attach_mappings = function(prompt_bufnr, map)
-      actions.select_default:replace(function()
-        actions.close(prompt_bufnr)
-        local selection = action_state.get_selected_entry()
-        vim.cmd("edit " .. selection.filename)
-        vim.api.nvim_win_set_cursor(0, { selection.lnum, 0 })
-        vim.cmd("normal! zz")
-      end)
-      return true
-    end,
-  }):find()
-end
+    }):find()
+  else
+    -- Fallback for non-telescope usage
+    local items = {}
+    local app_map = {}
 
--- Find Django templates
-M.find_templates = function()
-  local templates_path = options.templates_path
-  if templates_path:sub(-1) ~= "/" then
-    templates_path = templates_path .. "/"
+    for i, app in ipairs(apps) do
+      local file_path = app.path .. file_ext
+      if vim.fn.filereadable(file_path) == 1 then
+        local item = i .. ". " .. app.name
+        table.insert(items, item)
+        app_map[item] = file_path
+      end
+    end
+
+    if #items == 0 then
+      vim.notify("No " .. file_type .. " files found in any app", vim.log.levels.WARN)
+      return
+    end
+
+    vim.ui.select(items, {
+      prompt = "Select app for " .. file_type .. ":",
+    }, function(choice)
+      if not choice then return end
+
+      local file_path = app_map[choice]
+      if file_path then
+        vim.cmd("edit " .. file_path)
+      end
+    end)
   end
-
-  local command = "find " .. templates_path .. " -type f -name '*.html' 2>/dev/null"
-
-  local handle = io.popen(command)
-  if not handle then
-    vim.notify("Error: Could not find templates. Check your templates path.", vim.log.levels.ERROR)
-    return
-  end
-
-  local results = {}
-  for line in handle:lines() do
-    table.insert(results, line)
-  end
-  handle:close()
-
-  if #results == 0 then
-    vim.notify("No templates found in " .. templates_path, vim.log.levels.INFO)
-    return
-  end
-
-  pickers.new({}, {
-    prompt_title = "Django Templates",
-    finder = finders.new_table({
-      results = results,
-      entry_maker = function(entry)
-        local display = entry:gsub(templates_path, "")
-        return {
-          value = entry,
-          display = display,
-          ordinal = display,
-          filename = entry,
-        }
-      end,
-    }),
-    sorter = conf.generic_sorter({}),
-    previewer = conf.file_previewer({}),
-    attach_mappings = function(prompt_bufnr, map)
-      actions.select_default:replace(function()
-        actions.close(prompt_bufnr)
-        local selection = action_state.get_selected_entry()
-        vim.cmd("edit " .. selection.filename)
-      end)
-      return true
-    end,
-  }):find()
-end
-
--- List Django apps
-M.list_apps = function()
-  local command = "find . -maxdepth 2 -type f -name 'apps.py' 2>/dev/null | sed 's/\\/apps\\.py//' | sed 's/\\.\\///'"
-
-  local handle = io.popen(command)
-  if not handle then
-    vim.notify("Error: Could not find Django apps.", vim.log.levels.ERROR)
-    return
-  end
-
-  local results = {}
-  for line in handle:lines() do
-    table.insert(results, line)
-  end
-  handle:close()
-
-  if #results == 0 then
-    vim.notify("No Django apps found.", vim.log.levels.INFO)
-    return
-  end
-
-  pickers.new({}, {
-    prompt_title = "Django Apps",
-    finder = finders.new_table({
-      results = results,
-      entry_maker = function(entry)
-        return {
-          value = entry,
-          display = entry,
-          ordinal = entry,
-          path = entry,
-        }
-      end,
-    }),
-    sorter = conf.generic_sorter({}),
-    attach_mappings = function(prompt_bufnr, map)
-      actions.select_default:replace(function()
-        actions.close(prompt_bufnr)
-        local selection = action_state.get_selected_entry()
-        -- Open app directory in file browser
-        local has_nvim_tree = pcall(require, "nvim-tree")
-        if has_nvim_tree then
-          require("nvim-tree.api").tree.open({ path = selection.path })
-        else
-          vim.cmd("edit " .. selection.path)
-        end
-      end)
-      return true
-    end,
-  }):find()
 end
 
 return M
