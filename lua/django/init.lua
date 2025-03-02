@@ -15,6 +15,16 @@ M.config = {
     run_command = "<leader>dc",
     django_shell = "<leader>ds",
     new_project = "<leader>dn",
+  },
+  -- Telescope keymaps for app navigation
+  keymaps = {
+    views = "<C-v>",
+    models = "<C-m>",
+    urls = "<C-u>",
+    admin = "<C-a>",
+    tests = "<C-t>",
+    forms = "<C-f>",
+    migrations = "<C-d>", -- New keymap for migrations
   }
 }
 
@@ -23,7 +33,11 @@ function M.setup(opts)
   -- Merge user config with defaults
   if opts then
     for k, v in pairs(opts) do
-      M.config[k] = v
+      if k == "keymaps" and type(v) == "table" then
+        M.config.keymaps = vim.tbl_extend("force", M.config.keymaps, v)
+      else
+        M.config[k] = v
+      end
     end
   end
 
@@ -41,7 +55,7 @@ function M.setup(opts)
     M.config.manage_py_path = M.config.project_root .. "/manage.py"
   end
 
-  -- Set up commands
+  -- Set up commands and navigation
   commands.setup(M.config)
   navigation.setup(M.config)
 
@@ -61,6 +75,36 @@ function M.setup(opts)
   vim.api.nvim_create_user_command("DjangoNewProject", function(opts)
     commands.new_project(opts.args)
   end, { nargs = 1, desc = "Create a new Django project" })
+
+  -- Add explicit commands for file navigation
+  vim.api.nvim_create_user_command("DjangoGoToViews", function()
+    navigation.goto_django_file("views")
+  end, { desc = "Navigate to views.py in Django apps" })
+
+  vim.api.nvim_create_user_command("DjangoGoToModels", function()
+    navigation.goto_django_file("models")
+  end, { desc = "Navigate to models.py in Django apps" })
+
+  vim.api.nvim_create_user_command("DjangoGoToUrls", function()
+    navigation.goto_django_file("urls")
+  end, { desc = "Navigate to urls.py in Django apps" })
+
+  vim.api.nvim_create_user_command("DjangoGoToAdmin", function()
+    navigation.goto_django_file("admin")
+  end, { desc = "Navigate to admin.py in Django apps" })
+
+  vim.api.nvim_create_user_command("DjangoGoToTests", function()
+    navigation.goto_django_file("tests")
+  end, { desc = "Navigate to tests.py in Django apps" })
+
+  vim.api.nvim_create_user_command("DjangoGoToForms", function()
+    navigation.goto_django_file("forms")
+  end, { desc = "Navigate to forms.py in Django apps" })
+
+  -- Add new command for migrations directory
+  vim.api.nvim_create_user_command("DjangoGoToMigrations", function()
+    navigation.goto_django_file("migrations")
+  end, { desc = "Navigate to migrations directory in Django apps" })
 
   -- Set up key mappings if not explicitly disabled
   if M.config.mappings then
