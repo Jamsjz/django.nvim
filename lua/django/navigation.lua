@@ -1,3 +1,15 @@
+-- lua/django/navigation.lua
+-- Navigation functions for Django apps and files
+
+local M = {}
+local config = {}
+
+-- Initialize navigation module
+function M.setup(opts)
+  config = opts
+end
+
+-- Find and navigate to a Django app
 function M.find_app()
   local utils = require("django.utils")
 
@@ -176,3 +188,5 @@ function M.find_app()
     end)
   end
 end
+
+return M
