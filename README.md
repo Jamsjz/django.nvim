@@ -51,26 +51,30 @@ require('django').setup()
 
 ```lua
 require('django').setup({
-  -- Default values shown
-  manage_py_path = nil,  -- Will be auto-detected
-  project_root = nil,    -- Will be auto-detected
+  -- Default values for plugin configuration
+  manage_py_path = nil, -- Will be detected automatically
+  project_root = nil,   -- Will be detected automatically
   telescope_enabled = true,
   floaterm_enabled = true,
   mappings = {
     find_app = "<leader>df",
-    run_command = "<leader>dc",
-    django_shell = "<leader>ds",
-    new_project = "<leader>dn",
+    run_command = "<leader>dd",
+    django_shell = "<leader>dn",
+    new_project = "<leader>dp",
+    project_urls_file = "<leader>dsu",
+    project_settings_file = "<leader>dss",
+    project_asgi_file = "<leader>dsa",
+    project_wsgi_file = "<leader>dsw",
   },
-  -- Custom keymaps for Telescope app navigation
+  -- Telescope keymaps for app navigation
   keymaps = {
-    views = "<C-v>",      -- Navigate to views.py
-    models = "<C-m>",     -- Navigate to models.py
-    urls = "<C-u>",       -- Navigate to urls.py
-    admin = "<C-a>",      -- Navigate to admin.py
-    tests = "<C-t>",      -- Navigate to tests.py
-    forms = "<C-f>",      -- Navigate to forms.py
-    migrations = "<C-d>", -- Navigate to migrations directory
+    views = "<C-v>",
+    models = "<C-m>",
+    urls = "<C-u>",
+    admin = "<C-a>",
+    tests = "<C-t>",
+    forms = "<C-f>",
+    migrations = "<C-d>",
   }
 })
 ```
