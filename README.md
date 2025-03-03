@@ -130,6 +130,37 @@ require('django').setup({
 })
 ```
 
+Some other useful keymap(configure as you wish):
+```lua
+local function create_picker(prompt_title, glob_pattern)
+  return function()
+    local opts = {
+      cwd = vim.fn.expand("./mysite"),
+      prompt_title = prompt_title,
+      find_command = {
+        "rg",
+        "--files",
+        "--hidden",
+        "--glob",
+        glob_pattern,
+      },
+    }
+    builtin.find_files(opts)
+  end
+end
+local pickers = {
+  { key = "<leader>ds<space>", prompt_title = "Mysite Files", glob_pattern = "*.py", desc = "Mysite Files" },
+}
+for _, picker in ipairs(pickers) do
+  local func = create_picker(picker.prompt_title, picker.glob_pattern)
+  vim.keymap.set("n", picker.key, func, { desc = picker.desc })
+end
+vim.keymap.set("n", "<leader>dss", "<cmd>edit mysite/settings.py<cr>", { desc = "Project Settings" })
+vim.keymap.set("n", "<leader>dsu", "<cmd>edit mysite/urls.py<cr>", { desc = "Project URLS" })
+vim.keymap.set("n", "<leader>dsa", "<cmd>edit mysite/asgi.py<cr>", { desc = "Project ASGI" })
+vim.keymap.set("n", "<leader>dsw", "<cmd>edit mysite/wsgi.py<cr>", { desc = "Project WSGI" })
+```
+
 ## Usage Examples
 
 ### Finding and Navigating to Apps
