@@ -3,6 +3,57 @@
 
 local M = {}
 
+local function find_project_root()
+  local current_path = vim.api.nvim_buf_get_name(0)
+  current_path = current_path ~= '' and vim.fn.fnamemodify(current_path, ':p:h') or vim.loop.cwd()
+
+  local path = current_path
+  while true do
+    local manage_py = path .. '/manage.py'
+    if vim.loop.fs_stat(manage_py) then
+      return path
+    end
+    local parent = vim.fn.fnamemodify(path, ':h')
+    if parent == path then break end -- Reached filesystem root
+    path = parent
+  end
+  return nil
+end
+
+local function find_settings_dir(project_root)
+  local handle = vim.loop.fs_scandir(project_root)
+  if not handle then return nil end
+
+  while true do
+    local name, typ = vim.loop.fs_scandir_next(handle)
+    if not name then break end
+
+    if typ == 'directory' then
+      local candidate = project_root .. '/' .. name .. '/settings.py'
+      if vim.loop.fs_stat(candidate) then
+        return project_root .. '/' .. name
+      end
+    end
+  end
+  return nil
+end
+
+local function find_project_name()
+  local project_root = find_project_root()
+  if not project_root then
+    vim.notify("Could not find Django project root (manage.py)", vim.log.levels.ERROR)
+    return
+  end
+
+  local settings_dir = find_settings_dir(project_root)
+  if not settings_dir then
+    vim.notify("Could not find settings.py in project subdirectories", vim.log.levels.ERROR)
+    return
+  end
+
+  return vim.fn.fnamemodify(settings_dir, ':t')
+end
+
 -- Default configuration
 M.config = {
   -- Default values for plugin configuration
@@ -12,9 +63,13 @@ M.config = {
   floaterm_enabled = true,
   mappings = {
     find_app = "<leader>df",
-    run_command = "<leader>dc",
-    django_shell = "<leader>ds",
+    run_command = "<leader>dd",
+    django_shell = "<leader>dS",
     new_project = "<leader>dn",
+    project_urls_file = "<leader>dsu",
+    project_settings_file = "<leader>dss",
+    project_asgi_file = "<leader>dsa",
+    project_wsgi_file = "<leader>dsw",
   },
   -- Telescope keymaps for app navigation
   keymaps = {
@@ -118,11 +173,23 @@ function M.setup(opts)
         if name then commands.new_project(name) end
       end)
     end, { desc = "Create new Django project" })
+    vim.keymap.set("n", M.config.mappings.project_settings_file,
+      vim.cmd("edit " .. tostring(find_project_name()) .. "/settings.py"), { desc = "Project Settings" })
+    vim.keymap.set("n", M.config.mappings.project_asgi_file,
+      vim.cmd("edit " .. tostring(find_project_name()) .. "/asgi.py"), { desc = "Project ASGI" })
+    vim.keymap.set("n", M.config.mappings.project_wsgi_file,
+      vim.cmd("edit " .. tostring(find_project_name()) .. "/wsgi.py"), { desc = "Project WSGI" })
+    vim.keymap.set("n", M.config.mappings.project_urls_file,
+      vim.cmd("edit " .. tostring(find_project_name()) .. "/urls.py"), { desc = "Project URLs" })
   end
 
   -- Print a success message
-  vim.notify("Django.nvim loaded successfully" .. (M.config.project_root and " (Django project detected)" or ""),
+  vim.notify("" .. (M.config.project_root and " (Django project detected)" or ""),
     vim.log.levels.INFO)
+end
+
+function M.get_project_name()
+  return find_project_name()
 end
 
 return M
