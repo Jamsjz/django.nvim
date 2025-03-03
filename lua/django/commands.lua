@@ -60,7 +60,7 @@ function M.run_command()
             if command == "runserver" or command == "makemigrations" or
                 command == "migrate" or command == "createsuperuser" or
                 command == "startapp" or command == "test" or
-                command == "dbshell" then
+                command == "dbshell" or command == "sqlmigrate" then
               vim.ui.input({ prompt = "Additional arguments for " .. command .. ":" }, function(args)
                 if args ~= nil then
                   M.execute_command(command, args)
