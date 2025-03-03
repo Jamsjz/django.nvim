@@ -38,13 +38,13 @@ end
 local function find_project_name()
   local project_root = find_project_root()
   if not project_root then
-    vim.notify("Could not find Django project root (manage.py)", vim.log.levels.ERROR)
+    vim.notify("Could not find Django project root (manage.py)")
     return
   end
 
   local settings_dir = find_settings_dir(project_root)
   if not settings_dir then
-    vim.notify("Could not find settings.py in project subdirectories", vim.log.levels.ERROR)
+    vim.notify("Could not find settings.py in project subdirectories")
     return
   end
 
