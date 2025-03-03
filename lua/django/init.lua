@@ -1,6 +1,3 @@
--- lua/django/init.lua
--- Main entry point for the Django Neovim plugin
-
 local M = {}
 
 local function find_project_root()
@@ -83,6 +80,15 @@ M.config = {
   }
 }
 
+-- Function to validate mappings
+local function validate_mappings(mappings)
+  for key, value in pairs(mappings) do
+    if type(value) ~= "string" then
+      vim.notify("Invalid mapping for " .. key .. ": expected string, got " .. type(value), vim.log.levels.ERROR)
+    end
+  end
+end
+
 -- Setup function to initialize the plugin with user configuration
 function M.setup(opts)
   -- Merge user config with defaults
@@ -94,6 +100,15 @@ function M.setup(opts)
         M.config[k] = v
       end
     end
+  end
+
+  -- Validate mappings to avoid nil errors
+  if M.config.mappings then
+    validate_mappings(M.config.mappings)
+  end
+
+  if M.config.keymaps then
+    validate_mappings(M.config.keymaps)
   end
 
   -- Load dependencies
@@ -161,7 +176,7 @@ function M.setup(opts)
     navigation.goto_django_file("migrations")
   end, { desc = "Navigate to migrations directory in Django apps" })
 
-  -- Set up key mappings if not explicitly disabled
+  -- Set up key mappings safely with functions where needed
   if M.config.mappings then
     vim.keymap.set('n', M.config.mappings.find_app, function() navigation.find_app() end, { desc = "Find Django app" })
     vim.keymap.set('n', M.config.mappings.run_command, function() commands.run_command() end,
@@ -173,19 +188,22 @@ function M.setup(opts)
         if name then commands.new_project(name) end
       end)
     end, { desc = "Create new Django project" })
-    vim.keymap.set("n", M.config.mappings.project_settings_file,
-      vim.cmd("edit " .. tostring(find_project_name()) .. "/settings.py"), { desc = "Project Settings" })
-    vim.keymap.set("n", M.config.mappings.project_asgi_file,
-      vim.cmd("edit " .. tostring(find_project_name()) .. "/asgi.py"), { desc = "Project ASGI" })
-    vim.keymap.set("n", M.config.mappings.project_wsgi_file,
-      vim.cmd("edit " .. tostring(find_project_name()) .. "/wsgi.py"), { desc = "Project WSGI" })
-    vim.keymap.set("n", M.config.mappings.project_urls_file,
-      vim.cmd("edit " .. tostring(find_project_name()) .. "/urls.py"), { desc = "Project URLs" })
+    vim.keymap.set("n", M.config.mappings.project_settings_file, function()
+      vim.cmd("edit " .. tostring(find_project_name()) .. "/settings.py")
+    end, { desc = "Project Settings" })
+    vim.keymap.set("n", M.config.mappings.project_asgi_file, function()
+      vim.cmd("edit " .. tostring(find_project_name()) .. "/asgi.py")
+    end, { desc = "Project ASGI" })
+    vim.keymap.set("n", M.config.mappings.project_wsgi_file, function()
+      vim.cmd("edit " .. tostring(find_project_name()) .. "/wsgi.py")
+    end, { desc = "Project WSGI" })
+    vim.keymap.set("n", M.config.mappings.project_urls_file, function()
+      vim.cmd("edit " .. tostring(find_project_name()) .. "/urls.py")
+    end, { desc = "Project URLs" })
   end
 
   -- Print a success message
-  vim.notify("" .. (M.config.project_root and " (Django project detected)" or ""),
-    vim.log.levels.INFO)
+  vim.notify("Django.nvim configured successfully!", vim.log.levels.INFO)
 end
 
 function M.get_project_name()
