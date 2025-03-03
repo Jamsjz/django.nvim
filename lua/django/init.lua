@@ -178,28 +178,44 @@ function M.setup(opts)
 
   -- Set up key mappings safely with functions where needed
   if M.config.mappings then
-    vim.keymap.set('n', M.config.mappings.find_app, function() navigation.find_app() end, { desc = "Find Django app" })
-    vim.keymap.set('n', M.config.mappings.run_command, function() commands.run_command() end,
-      { desc = "Run Django command" })
-    vim.keymap.set('n', M.config.mappings.django_shell, function() commands.open_shell() end,
-      { desc = "Open Django shell" })
-    vim.keymap.set('n', M.config.mappings.new_project, function()
-      vim.ui.input({ prompt = "Project name: " }, function(name)
-        if name then commands.new_project(name) end
-      end)
-    end, { desc = "Create new Django project" })
-    vim.keymap.set("n", M.config.mappings.project_settings_file, function()
-      vim.cmd("edit " .. tostring(find_project_name()) .. "/settings.py")
-    end, { desc = "Project Settings" })
-    vim.keymap.set("n", M.config.mappings.project_asgi_file, function()
-      vim.cmd("edit " .. tostring(find_project_name()) .. "/asgi.py")
-    end, { desc = "Project ASGI" })
-    vim.keymap.set("n", M.config.mappings.project_wsgi_file, function()
-      vim.cmd("edit " .. tostring(find_project_name()) .. "/wsgi.py")
-    end, { desc = "Project WSGI" })
-    vim.keymap.set("n", M.config.mappings.project_urls_file, function()
-      vim.cmd("edit " .. tostring(find_project_name()) .. "/urls.py")
-    end, { desc = "Project URLs" })
+    if M.config.mappings.find_app then
+      vim.keymap.set('n', M.config.mappings.find_app, function() navigation.find_app() end, { desc = "Find Django app" })
+    end
+    if M.config.mappings.run_command then
+      vim.keymap.set('n', M.config.mappings.run_command, function() commands.run_command() end,
+        { desc = "Run Django command" })
+    end
+    if M.config.mappings.django_shell then
+      vim.keymap.set('n', M.config.mappings.django_shell, function() commands.open_shell() end,
+        { desc = "Open Django shell" })
+    end
+    if M.config.mappings.new_project then
+      vim.keymap.set('n', M.config.mappings.new_project, function()
+        vim.ui.input({ prompt = "Project name: " }, function(name)
+          if name then commands.new_project(name) end
+        end)
+      end, { desc = "Create new Django project" })
+    end
+    if M.config.mappings.project_settings_file then
+      vim.keymap.set("n", M.config.mappings.project_settings_file, function()
+        vim.cmd("edit " .. tostring(find_project_name()) .. "/settings.py")
+      end, { desc = "Project Settings" })
+    end
+    if M.config.mappings.project_asgi_file then
+      vim.keymap.set("n", M.config.mappings.project_asgi_file, function()
+        vim.cmd("edit " .. tostring(find_project_name()) .. "/asgi.py")
+      end, { desc = "Project ASGI" })
+    end
+    if M.config.mappings.project_wsgi_file then
+      vim.keymap.set("n", M.config.mappings.project_wsgi_file, function()
+        vim.cmd("edit " .. tostring(find_project_name()) .. "/wsgi.py")
+      end, { desc = "Project WSGI" })
+    end
+    if M.config.mappings.project_urls_file then
+      vim.keymap.set("n", M.config.mappings.project_urls_file, function()
+        vim.cmd("edit " .. tostring(find_project_name()) .. "/urls.py")
+      end, { desc = "Project URLs" })
+    end
   end
 
   -- Print a success message
